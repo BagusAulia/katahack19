@@ -1,45 +1,134 @@
-# Python: Getting Started
+# Plasma : Extract text from image using Tesseract OCR
 
-A barebones Django app, which can easily be deployed to Heroku.
+Aplikasi ini bertujuan untuk mengekstrak teks pada gambar error yang didapatkan pengguna yang nantinya dianalisis menggunakan platform dari Kata.ai.
 
-This application supports the [Getting Started with Python on Heroku](https://devcenter.heroku.com/articles/getting-started-with-python) article - check it out.
+Demo aplikasi yang telah dipublikasikan menggunakan [Heroku](https://www.heroku.com/) bisa dilihat disini [https://warm-citadel-64062.herokuapp.com/](https://warm-citadel-64062.herokuapp.com/)
 
-## Running Locally
+## Spesifikasi Aplikasi
 
-Make sure you have Python 3.7 [installed locally](http://install.python-guide.org). To push to Heroku, you'll need to install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli), as well as [Postgres](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup).
+Aplikasi ini menggunakan beberapa library python diantaranya
+- Framework Django
+- Library PyTesseract OCR
+- Library Pillow
 
+## Configuring PyTesseract on Heroku
+
+1. Tambahkan heroku-apt-buildpack menggunakan command:
+Untuk melihat sumber : [repository](https://github.com/heroku/heroku-buildpack-apt)
 ```sh
-$ git clone https://github.com/heroku/python-getting-started.git
-$ cd python-getting-started
-
-$ python3 -m venv getting-started
-$ pip install -r requirements.txt
-
-$ createdb python_getting_started
-
-$ python manage.py migrate
-$ python manage.py collectstatic
-
-$ heroku local
+$ heroku buildpacks:add --index 1 heroku-community/apt
 ```
-
-Your app should now be running on [localhost:5000](http://localhost:5000/).
-
-## Deploying to Heroku
-
+2. Tambahkan Aptfile ke direktori project
 ```sh
-$ heroku create
+$ touch Aptfile
+```
+3. Tambahkan daftar konfigurasi ke Aptfile
+tesseract-ocr-eng untuk identifikasi bahasa inggris pada tesseract.
+tesseract-ocr-ind untuk identifikasi bahasa indonesia pada tesseract.
+```sh
+tesseract-ocr
+tesseract-ocr-eng
+tesseract-ocr-ind
+```
+4. Cek path untuk mengakses data package tesseract-ocr-eng dan tesseract-ocr-ind
+Kita akan menggunakan path tersebut di langkah selanjutnya
+```sh
+$ heroku run bash
+$ find -iname tessdata # this will give us the path we need
+```
+Kamu dapat keluar dari heroku shell dengan command 
+```sh 
+exit
+```
+5. Sekarang, atur variabel heroku config bernama TESSDATA_PREFIX dengan path sebelumnya
+Biasanya path yang didapatkan seperti ini
+```sh
+$ heroku config:set TESSDATA_PREFIX=./.apt/usr/share/tesseract-ocr/4.00/tessdata
+```
+6. Push perubahan ke heroku
+```sh
 $ git push heroku master
-
-$ heroku run python manage.py migrate
-$ heroku open
 ```
-or
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+Sumber : [Using Tesseract on Heroku with Django](https://stackoverflow.com/questions/19521976/using-tesseract-on-heroku-with-django)
 
-## Documentation
 
-For more information about using Python on Heroku, see these Dev Center articles:
+## Configuring PyTesseract on PC (Windows)
 
-- [Python on Heroku](https://devcenter.heroku.com/categories/python)
+1. Install tesseract using windows installer available at: [installer](https://github.com/UB-Mannheim/tesseract/wiki)
+
+2. Note the tesseract path from the installation.Default installation path at the time the time of this edit was: C:\Program Files\Tesseract-OCR. It may change so please check the installation path.
+
+3. pip install pytesseract
+
+4. set the tesseract path in the script before calling image_to_string:
+
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+
+Source : [Pytesseract : "Tesseract Not Found"](https://stackoverflow.com/questions/50951955/pytesseract-tesseractnotfound-error-tesseract-is-not-installed-or-its-not-i)
+
+
+## Implementasi Coding pada Heroku
+
+```sh
+from io import BytesIO
+from PIL import Image
+import requests
+import pytesseract
+
+def attachment(request):
+    chats = Chat.objects.filter(user = "user", is_sent = 0)
+
+    if chats.count() :
+        for chat in chats :
+    
+            if chat.attachment :
+                #disesuaikan dengan path gambar yang akan diekstrak
+                response   = requests.get("https://warm-citadel-64062.herokuapp.com" + chat.attachment.url)
+                img        = Image.open(BytesIO(response.content))
+                transcript = pytesseract.image_to_string(img)
+                
+                chat.message = transcript
+                chat.is_sent = 1
+                chat.save()
+
+                return JsonResponse({'transcript' : transcript, 'img_url' : chat.attachment.url})
+
+        return HttpResponse('')
+        
+    return HttpResponse('')
+```
+
+## Implementasi Coding pada Local (PC Windows)
+
+```sh
+from io import BytesIO
+from PIL import Image
+import requests
+import pytesseract
+
+def attachment(request):
+    chats = Chat.objects.filter(user = "user", is_sent = 0)
+
+    if chats.count() :
+        for chat in chats :
+
+            if chat.attachment :
+                #Dibutuhkan untuk mengakses package data tesseract pada server lokal
+                pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+                
+                response   = requests.get("http://localhost:5000" + chat.attachment.url)
+                img        = Image.open(BytesIO(response.content))
+                transcript = pytesseract.image_to_string(img)
+                
+                chat.message = transcript
+                chat.is_sent = 1
+                chat.save()
+
+                return JsonResponse({'transcript' : transcript, 'img_url' : chat.attachment.url})
+
+        return HttpResponse('')
+        
+    return HttpResponse('')
+```
