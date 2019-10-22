@@ -5,6 +5,7 @@ from . import views
 app_name = 'chats'
 
 urlpatterns = [
-    path('send/',    views.send,    name='send'),
-    path('receive/', views.receive, name='receive'),
+    path('send/',       views.send,       name='send'),
+    path('receive/',    views.receive,    name='receive'),
+    path('attachment/', views.attachment, name='attachment'),
 ]

@@ -4,7 +4,7 @@ from django.conf import settings
 class Chat(models.Model):
     user            = models.CharField(max_length=100)
     message         = models.TextField()
-    attachment_name = models.TextField()
+    attachment      = models.ImageField(upload_to='images/attachment/')
     is_sent         = models.SmallIntegerField()
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now_add=True)

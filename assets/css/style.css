@@ -200,6 +200,7 @@ html {
     bottom: -15px;
     color: rgba(255, 255, 255, 0.5);
     font-size: 10px;
+    width: 105px;
 }
 
 .msg_time_send {
@@ -208,6 +209,7 @@ html {
     bottom: -15px;
     color: rgba(255, 255, 255, 0.5);
     font-size: 10px;
+    width: 105px;
 }
 
 .msg_head {
@@ -255,6 +257,10 @@ html {
 .action_menu ul li:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.2);
+}
+
+.hidden {
+    display: none;
 }
 
 @media(max-width: 576px) {

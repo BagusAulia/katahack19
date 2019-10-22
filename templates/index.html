@@ -1,5 +1,4 @@
 {% load static from staticfiles %}
-{% load humanize %}
 
 <!DOCTYPE html>
 <html>
@@ -9,10 +8,12 @@
 
 		<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 		<link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
-		<script src="{% static 'js/jquery.min.js' %}"></script>
 		<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.mCustomScrollbar.min.css' %}">
-		<script type="text/javascript" src="{% static 'js/jquery.mCustomScrollbar.min.js' %}"></script>
 		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<script src="{% static 'js/jquery.form.js' %}"></script>
+		<script type="text/javascript" src="{% static 'js/jquery.mCustomScrollbar.min.js' %}"></script>
 	</head>
 	<!--Coded With Love By Mutiullah Samim-->
 	<body>
@@ -34,23 +35,32 @@
 							</div>
 						</div>
 						<div class="card-body msg_card_body">
-							{% for chat in chats %}
+							{% for chat in chat_list %}
 								{% if chat.user == "admin" %}
 									<div class="d-flex justify-content-start mb-4">
 										<div class="img_cont_msg">
 											<img src="{% static 'images/plasma.png' %}" class="rounded-circle user_img_msg">
 										</div>
 										<div class="msg_cotainer">
-											{{ chat.message }}
-											<span class="msg_time">{{ chat.created_at|naturaltime }}</span> 
+											{% if chat.attachment %}
+												<img src="{{ chat.attachment.url }}" width="150px" height="auto">
+											{% else %}
+												{{ chat.message }}
+											{% endif %}
+											<!-- <span class="msg_time">{{ chat.created_at }}</span>  -->
 										</div>
 									</div>
 								{% else %}
 								<div class="d-flex justify-content-end mb-4">
 									<div class="msg_cotainer_send">
-										{{ chat.message }}
-										<span class="msg_time_send">{{ chat.created_at|naturaltime }}</span> 
+										{% if chat.attachment %}
+											<img src="{{ chat.attachment.url }}" width="150px" height="auto">
+										{% else %}
+											{{ chat.message }}
+										{% endif %}
+										<!-- <span class="msg_time_send">{{ chat.created_at }}</span>  -->
 									</div>
+
 									<div class="img_cont_msg">
 										<img src="{% static 'images/user.png' %}" class="rounded-circle user_img_msg">
 									</div>
@@ -61,6 +71,7 @@
 						<div class="card-footer">
 							<div class="input-group">
 								<div class="input-group-append">
+									<input type="file" id="image_to_upload" class="hidden" accept="image/png, image/jpeg"/>
 									<span class="input-group-text attach_btn"><i class="fa fa-paperclip"></i></span>
 								</div>
 								{% csrf_token %}
@@ -70,6 +81,12 @@
 								</div>
 							</div>
 						</div>
+
+						<form id="myForm" action="{% url 'home' %}" method="post" class="hidden"> 
+							{% csrf_token %}
+							{{ form.as_p }}
+							<input type="submit" value="submit" id="submit_btn"/> 
+						</form>
 					</div>
 				</div>
 
@@ -98,6 +115,17 @@
 				return cookieValue;
 			}
 
+			function imageMsg(message) {
+				return '<div class="d-flex justify-content-end mb-4">' +
+								'<div class="msg_cotainer_send">' + 
+									`<img src="` + message + `" width="150px" height="auto">` + 
+								'</div>' +
+								'<div class="img_cont_msg">' +
+									`<img src="{% static 'images/user.png' %}" class="rounded-circle user_img_msg">` +
+								'</div>' + 
+							'</div>';
+			}
+
 			function userMsg(message) {
 				return '<div class="d-flex justify-content-end mb-4">' +
 								'<div class="msg_cotainer_send">' + 
@@ -108,6 +136,7 @@
 								'</div>' + 
 							'</div>';
 			}
+									// `<span class="msg_time_send">` + message + `</span>` +
 
 			function adminMsg(message) {
 				return '<div class="d-flex justify-content-start mb-4">' +
@@ -119,6 +148,7 @@
 								'</div>' +
 							'</div>';
 			}
+									// `<span class="msg_time">` + message.created_at + `</span>` +
 
 			var checkMsg = setInterval(function(){
 				var csrfmiddlewaretoken = getCookie('csrftoken');
@@ -140,11 +170,35 @@
 					}
 				});
 			}, 5000);
-			
-            $(document).ready(function(){
-                $('#action_menu_btn').click(function(){
-                    $('.action_menu').toggle();
-                });
+
+			$(document).ready(function(){
+				$('.attach_btn').click(function(){
+					$('#id_attachment').click();
+				})
+
+				$("#id_attachment").on("change", function() {
+					$("#submit_btn").click();
+				});
+
+				$('#myForm').ajaxForm(function() { 
+					var csrfmiddlewaretoken = getCookie('csrftoken');
+
+					$.ajax({
+						type: 'POST',
+						url: "{% url 'chats:attachment' %}",
+						data: { csrfmiddlewaretoken },
+						success: function(done){
+							var img_msg = imageMsg(done.img_url);
+							// var msg = userMsg(done.transcript);
+
+							$('.msg_card_body').append(img_msg);
+							// $('.msg_card_body').append(msg);
+						},
+						error: function(fail){
+							console.log(fail.responseText);
+						}
+					});
+				});
 
 				$('.send_btn').click(function(){
 					var csrfmiddlewaretoken = getCookie('csrftoken');
