@@ -1,6 +1,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from .models import Chat
+# from django.core.serializers import serialize
 
 from io import BytesIO
 from PIL import Image
@@ -17,17 +18,28 @@ def send(request):
         )
 
         url      = 'https://kanal.kata.ai/receive_message/b2541886-e3b7-4de3-96c7-9cb06c0acc58'
+        # url      = 'https://kanal.kata.ai/receive_message/b2541886-e3b7-4de3-96c7-9cb06c0acc58?token=RayleighPlasma'
         # url      = endpoint.format(source_lang='en', word_id=word)
         headers  = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization' : 'Bearer RayleighPlasma'}
         response = requests.get(url, headers=headers)
 
-        return HttpResponse(response)
+        chat.create(
+            user = "admin",
+            message = response,
+            is_sent = 0
+        )
+
+        # kataResponse = serialize('json', response)
+
+        # return JsonResponse({'user' : request.POST['message'], 'admin' : kataResponse})
+        return HttpResponse(request.POST['message'])
+        # return HttpResponse(response)
     
     return HttpResponse('error')
 
 def receive(request): 
     if request.method == 'POST':
-        types = request.POST['type']
+        types  = request.POST['type']
         chatss = Chat.objects.filter(user = "admin", is_sent = 0)
 
         if chatss.count() :
@@ -35,7 +47,8 @@ def receive(request):
                 chat.is_sent = 1
                 chat.save()
 
-            return HttpResponse(chat.message)
+                return HttpResponse(chat.message)
+
         return HttpResponse('')
     
     return HttpResponse('error')
@@ -57,6 +70,19 @@ def attachment(request):
                     chat.message = transcript
                     chat.is_sent = 1
                     chat.save()
+
+                    url      = 'https://kanal.kata.ai/receive_message/b2541886-e3b7-4de3-96c7-9cb06c0acc58'
+                    # url      = 'https://kanal.kata.ai/receive_message/b2541886-e3b7-4de3-96c7-9cb06c0acc58?token=RayleighPlasma'
+                    # url      = endpoint.format(source_lang='en', word_id=word)
+                    headers  = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization' : 'Bearer RayleighPlasma', 'type' : 'text'}
+                    response = requests.get(url, headers=headers)
+
+                    responseChat = Chat.objects
+                    responseChat.create(
+                        user = "admin",
+                        message = response,
+                        is_sent = 0
+                    )
 
                     return JsonResponse({'transcript' : transcript, 'img_url' : chat.attachment.url})
 

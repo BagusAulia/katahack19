@@ -14,6 +14,7 @@ Aplikasi ini menggunakan beberapa library python diantaranya
 ## Configuring PyTesseract on Heroku
 
 1. Tambahkan heroku-apt-buildpack menggunakan command:
+
 Untuk melihat sumber : [repository](https://github.com/heroku/heroku-buildpack-apt)
 ```sh
 $ heroku buildpacks:add --index 1 heroku-community/apt
@@ -23,7 +24,9 @@ $ heroku buildpacks:add --index 1 heroku-community/apt
 $ touch Aptfile
 ```
 3. Tambahkan daftar konfigurasi ke Aptfile
+
 tesseract-ocr-eng untuk identifikasi bahasa inggris pada tesseract.
+
 tesseract-ocr-ind untuk identifikasi bahasa indonesia pada tesseract.
 ```sh
 tesseract-ocr
@@ -31,16 +34,15 @@ tesseract-ocr-eng
 tesseract-ocr-ind
 ```
 4. Cek path untuk mengakses data package tesseract-ocr-eng dan tesseract-ocr-ind
+
 Kita akan menggunakan path tersebut di langkah selanjutnya
 ```sh
 $ heroku run bash
 $ find -iname tessdata # this will give us the path we need
 ```
-Kamu dapat keluar dari heroku shell dengan command 
-```sh 
-exit
-```
+Kamu dapat keluar dari heroku shell dengan command `exit`
 5. Sekarang, atur variabel heroku config bernama TESSDATA_PREFIX dengan path sebelumnya
+
 Biasanya path yang didapatkan seperti ini
 ```sh
 $ heroku config:set TESSDATA_PREFIX=./.apt/usr/share/tesseract-ocr/4.00/tessdata
@@ -62,8 +64,9 @@ Sumber : [Using Tesseract on Heroku with Django](https://stackoverflow.com/quest
 3. pip install pytesseract
 
 4. set the tesseract path in the script before calling image_to_string:
-
+```sh
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+```
 
 
 Source : [Pytesseract : "Tesseract Not Found"](https://stackoverflow.com/questions/50951955/pytesseract-tesseractnotfound-error-tesseract-is-not-installed-or-its-not-i)
@@ -71,6 +74,7 @@ Source : [Pytesseract : "Tesseract Not Found"](https://stackoverflow.com/questio
 
 ## Implementasi Coding pada Heroku
 
+file berada di direktori `chats/views.py`
 ```sh
 from io import BytesIO
 from PIL import Image
@@ -102,6 +106,7 @@ def attachment(request):
 
 ## Implementasi Coding pada Local (PC Windows)
 
+file berada di direktori `chats/views.py`
 ```sh
 from io import BytesIO
 from PIL import Image

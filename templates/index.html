@@ -160,7 +160,11 @@
 					data: { type, csrfmiddlewaretoken },
 					success: function(done){
 						if(done != ""){
-							var msg = adminMsg(done);
+							console.log(done);
+							var message = done.replace("<", "");
+							message = message.replace(">", "");
+							var msg = adminMsg(message);
+
 							$('.msg_card_body').append(msg);
 							$('.type_msg').val('');
 						}
@@ -189,10 +193,12 @@
 						data: { csrfmiddlewaretoken },
 						success: function(done){
 							var img_msg = imageMsg(done.img_url);
-							// var msg = userMsg(done.transcript);
+							var msg = userMsg(done.transcript);
+							// var admMsg = adminMsg(done.admin);
 
 							$('.msg_card_body').append(img_msg);
-							// $('.msg_card_body').append(msg);
+							$('.msg_card_body').append(msg);
+							// $('.msg_card_body').append(admMsg);
 						},
 						error: function(fail){
 							console.log(fail.responseText);
@@ -210,8 +216,11 @@
 							url: "{% url 'chats:send' %}",
 							data: { message, csrfmiddlewaretoken },
 							success: function(done){
-								var msg = userMsg(done);
+								var msg    = userMsg(done);
+								// var admMsg = adminMsg(done.admin);
+
 								$('.msg_card_body').append(msg);
+								// $('.msg_card_body').append(adminMsg);
 								$('.type_msg').val('');
 							},
 							error: function(fail){
