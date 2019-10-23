@@ -41,6 +41,7 @@ $ heroku run bash
 $ find -iname tessdata # this will give us the path we need
 ```
 Kamu dapat keluar dari heroku shell dengan command `exit`
+
 5. Sekarang, atur variabel heroku config bernama TESSDATA_PREFIX dengan path sebelumnya
 
 Biasanya path yang didapatkan seperti ini
